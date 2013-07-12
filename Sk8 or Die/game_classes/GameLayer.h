@@ -24,6 +24,10 @@
     BOOL isJumpingAnimation;
     
     int _nextEnemy;
+    CGPoint firstTouch;
+    CGPoint lastTouch;
+    
+    float platformHeadSize;
 }
 
 @property (nonatomic, retain) CCSprite *hero;

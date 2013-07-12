@@ -245,7 +245,7 @@
                     _platforms2 = nil;
                 }
                 
-                if (platform.position.x + platformWidth < targetCoordinate.x) {
+                if (platform.position.x + platformWidth < targetCoordinate.x+[self getLaneGapWidth]) {
                     returnCoordinate = pointZero;
                     isGap = YES;
                     //NSLog(@"gap.2");
@@ -285,7 +285,7 @@
                     _platforms3 = nil;
                 }
                 
-                if (platform.position.x + platformWidth < targetCoordinate.x) {
+                if (platform.position.x + platformWidth < targetCoordinate.x+[self getLaneGapWidth]) {
                     returnCoordinate = pointZero;
                     isGap = YES;
                     //NSLog(@"gap.3");
@@ -330,7 +330,9 @@
 
 - (float) calculateGapFactor
 {
-    return (1 - (platformSpeed * 5 / 100));
+    NSLog(@"%f",1-[self randFloatWith:0.20 and:0.8]+(platformSpeed/100));
+    //max on rajoute le platformspeed !!
+    return 1-[self randFloatWith:0.50 and:0.9];
 }
 
 - (float)randomValueBetween:(float)low andValue:(float)high
@@ -344,7 +346,29 @@
 }
 
 -(float)getLaneGapWidth {
-    return 140;
+    if (!laneGapWidth)
+        laneGapWidth = 140;
+    
+    return laneGapWidth;
+}
+
+-(void)wentOnFirstLane {
+    laneGapWidth = 140;
+}
+
+-(void)wentOnSecondLane {
+    laneGapWidth = 100;
+    
+}
+
+// Generates a random float between 0 and 1
+- (float)randFloat {
+    return (float)arc4random() / UINT_MAX ;
+}
+
+// Generates a random float between imin and imax
+- (float)randFloatWith:(float)imin and:(float)imax {
+    return imin + (imax-imin)*[self randFloat];
 }
 
 @end

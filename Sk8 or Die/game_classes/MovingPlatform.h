@@ -41,6 +41,7 @@
     CGPoint targetCoordinate;
     CGPoint returnCoordinate;
     CGPoint pointZero;
+    float laneGapWidth;
     
 }
 
@@ -59,5 +60,7 @@
 - (id)initWithSpeed:(float)speed andPause:(BOOL)pause andImages:(CCArray*)images;
 - (void)paused:(BOOL)yesno;
 - (CGPoint)getYCoordinateAt:(CGPoint)coorX;
+- (void)wentOnFirstLane;
+- (void)wentOnSecondLane;
 
 @end

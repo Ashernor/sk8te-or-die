@@ -15,7 +15,7 @@
 #define kJumpShort 13
 #define kGravityFactor -1
 #define kPlatformHeadSize 145
-#define kDifficultySpeed 0.8
+#define kDifficultySpeed 0.25
 #define kDifficultyScore 100
 #define kInitialEnemies 10
 
@@ -49,6 +49,7 @@
 
 -(id) init
 {
+    platformHeadSize = kPlatformHeadSize;
 	if( (self=[super init])) {
         self.touchEnabled = YES;
 		isJumping = NO;
@@ -124,7 +125,7 @@
 {
     CGPoint returnedCoordinate = [platform getYCoordinateAt:heroRunningPosition];
     if (heroRunningPosition.y != returnedCoordinate.y) {
-        heroRunningPosition = ccp(heroRunningPosition.x, returnedCoordinate.y - kPlatformHeadSize);
+        heroRunningPosition = ccp(heroRunningPosition.x, returnedCoordinate.y - platformHeadSize);
     }
     
     //falling between gap
@@ -219,6 +220,7 @@
         CCAnimation *jumpAnimation = [CCAnimation animationWithSpriteFrames:runAnimFrames delay:0.1f];
         jumpAnimation.restoreOriginalFrame = YES;
         CCAction *jump = [CCRepeatForever actionWithAction: [CCAnimate actionWithAnimation:jumpAnimation]];
+        jump.tag = 89;
         [_hero stopAllActions];
         [_hero cleanup];
         [_hero runAction:jump];
@@ -240,23 +242,55 @@
 
 - (BOOL)ccTouchBegan:(UITouch *)touch withEvent:(UIEvent *)event
 {
-	if (isJumping == NO && isGap == NO) {
-		//[_hero stopAllActions];
-		//[self changeHeroImageDuringJump];
+    //Swipe
+    CGPoint location = [touch locationInView: [touch view]];
+    location = [[CCDirector sharedDirector] convertToGL:location];
+    firstTouch = location;
+    
+    if (isJumping == NO && isGap == NO & firstTouch.x < 160) {
         [self changeHeroImageDuringJump];
-		isJumping = YES;
-		jumpVelocity = ccp(0, kJumpHigh);
-		[self schedule:@selector(jump:) interval:(1.0 / 60.0)];
-        //[self schedule:@selector(jump:)];
-	}
-	return YES;
+        isJumping = YES;
+        jumpVelocity = ccp(0, kJumpHigh);
+        [self schedule:@selector(jump:) interval:(1.0 / 60.0)];
+    }
+    
+    return YES;
 }
 
 - (void)ccTouchEnded:(UITouch *)touch withEvent:(UIEvent *)event
 {
-	if (jumpVelocity.y > kJumpShort) {
+    
+    if (jumpVelocity.y > kJumpShort) {
 		jumpVelocity = ccp(0, kJumpShort);
 	}
+    
+    //swipe
+    CGPoint location = [touch locationInView: [touch view]];
+    location = [[CCDirector sharedDirector] convertToGL:location];
+    
+    //Swipe Detection Part 2
+    lastTouch = location;
+    
+    //Minimum length of the swipe
+    float swipeLength = ccpDistance(firstTouch, lastTouch);
+    
+    //Check if the swipe is a left swipe and long enough
+    if (firstTouch.y > lastTouch.y && swipeLength > 40 && !isJumping) {
+        //NSLog(@"swipe from up to down");
+        [platform wentOnSecondLane];
+        platformHeadSize = 170;
+        CGPoint returnedCoordinate = [platform getYCoordinateAt:heroRunningPosition];
+        heroRunningPosition = ccp(heroRunningPosition.x, returnedCoordinate.y - platformHeadSize);
+        _hero.position = heroRunningPosition;
+    }else if (firstTouch.y < lastTouch.y && swipeLength > 40 && !isJumping){
+        //NSLog(@"swipe from down to up");
+        [platform wentOnFirstLane];
+        platformHeadSize = 140;
+        CGPoint returnedCoordinate = [platform getYCoordinateAt:heroRunningPosition];
+        heroRunningPosition = ccp(heroRunningPosition.x, returnedCoordinate.y - platformHeadSize);
+        _hero.position = heroRunningPosition;
+    }else{
+    }
 }
 
 - (void)gameOver {
